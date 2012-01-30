@@ -1,8 +1,8 @@
-/** @preserve jquery.uithemeswitch.js
+/** @preserve jquery.uithemeswitch.js v1.0.1
  * requires jquery.ui.accordion.js, and optionally jquery.cookie.js
  */
 /*global jQuery, document, window */
-/*jslint white:false, regexp:false, plusplus:false, strict:false, forin:true*/
+/*jslint white:true, regexp:true, plusplus:true, sloppy:true, forin:true*/
 
 /* Theme Switcher for jQuery UI
  * 
@@ -18,7 +18,8 @@
  * - can intercept and prevent a switch (onSelect option)
  * - can set all cookie options
  * - can use external cookie(?) function for saving selected theme
- * - UI version can be changed from options
+ * - UI version defaults to jQuery.ui.version, but can be changed from options
+ *     NOTE if your page loads a 'latest' version (eg. .../jqueryui/1/...) you should set this option to '1' also!
  * - can provide post-switch processing (onLoad option)
  * - class on BODY indicates current theme ('uithemeswitch-theme-' + THEME, where THEME is the CDN css folder
  *     unless cdn isn't being used in which case its the theme name lowercased with spaces replaced by hyphens
@@ -101,10 +102,10 @@
 (function($){
 
 if(!$.uithemeswitch){
-	$.uithemeswitch = {
-		version: '1.0', // 30 May 2011
+    $.uithemeswitch = {
+		version: '1.0.1',
 		options: {
-			uiVersion: '1.8.13', // (latest at the time of writing) this is for the theme css, and should match the UI version you are using
+			uiVersion: $.ui.version, //picked up from loaded ui, but overridable in case a 'latest' url is used for css (eg. like .../jqueryui/1/...)
 			compact: 0, // set true for small thumbnail; small = 30x27 px, large (default) = 90x80 px
 			loadTheme: null, // set to a theme name (eg. 'UI Lightness') to initially load that theme (in the absence of a cookie-saved theme)
 			text: {
@@ -136,7 +137,7 @@ if(!$.uithemeswitch){
 			onReset: $.noop, // function, called when Reset Theme is clicked; parameters : current theme, reset theme, current state of Remember; return false to prevent any action being taken
 			onSelect: $.noop // function, called when a new theme is selected; parameters : selected theme, current theme, current state of Remember; return false to prevent selection
 		},
-		cssCDN: 'http://ajax.googleapis.com/ajax/libs/jqueryui/{uiVersion}/themes/{folder}/jquery-ui.css',
+		cssCDN: '//ajax.googleapis.com/ajax/libs/jqueryui/{uiVersion}/themes/{folder}/jquery-ui.css',
 		thumbCDN: 'http://static.jquery.com/ui/themeroller/images/themeGallery/theme_{thumbsize_30_90}_{thumb}.png',
 		themes: {
 			// 'theme name' : { folder : [name of theme folder] , thumb : [theme-specific part of image file name] }
