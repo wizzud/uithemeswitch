@@ -85,12 +85,11 @@ Where and how you place the Theme Switcher is completely up to you.
 
 ## Options
 
-<style type="text/css">table{border-collapse:collapse;}td,th{vertical-align:top;border:1px solid #cccccc;padding:2px 5px;}th{background-color:#666666;color:#ffffff;font-weight:normal;text-align:left;}</style>
 <table>
 	<tr>
 		<th>Option</th>
 		<th>Default</th>
-		<th>Decsription</th>
+		<th>Description</th>
 	</tr>
 	<tr>
 		<td>uiVersion</td>
