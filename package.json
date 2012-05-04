@@ -1,0 +1,36 @@
+{
+    "name": "uithemeswitch",
+	"version": "1.0.2",
+	"title": "Theme Switcher for jQuery UI",
+	"author": {
+		"name": "Roger Barrett",
+		"url": "http://www.wizzud.com"
+	},
+	"licenses": [
+		{
+			"type": "MIT",
+			"url" : "http://www.opensource.org/licenses/MIT"
+		},
+		{
+			"type": "GPLv2",
+			"url": "http://www.opensource.org/licenses/GPL-2.0"
+		}
+	],
+	"dependencies": {
+		"jquery": ">=1.4.3"
+	},
+	"description": "Theme Switch is a jQuery plugin for use with jQuery UI, and allows switching between UI Themes. (Please note that it is not a UI widget!)",
+	"keywords": [
+		"jquery",
+		"ui",
+		"theme",
+		"switcher"
+	],
+	"homepage": "https://github.com/wizzud/uithemeswitch",
+	"files": [
+		"example.html",
+		"jquery.uithemeswitch.css",
+		"jquery.uithemeswitch.js",
+		"jquery.uithemeswitch.min.js"
+	]
+}

@@ -1,0 +1,30 @@
+/**
+ * css for jquery.uithemeswitcher v1.0.2
+ * IMPORTANT! You need to include this stylesheet (or define your own styles) AFTER the jQuery UI theme styles!
+ */
+.uithemeswitch {width:15em; text-align:left;}
+.uithemeswitch div, .uithemeswitch ul, .uithemeswitch li, .uithemeswitch a, .uithemeswitch input {position:relative;}
+.uithemeswitch .uithemeswitch-header {}
+.uithemeswitch a.uithemeswitch-button {}
+/*spans within button...*/
+.uithemeswitch .uithemeswitch-prompt {display:inline;}
+.uithemeswitch .uithemeswitch-current {display:none;}
+.uithemeswitch-themed .uithemeswitch-prompt {display:none;}
+.uithemeswitch-themed .uithemeswitch-current {display:inline;}
+.uithemeswitch-themed .uithemeswitch-rollover .uithemeswitch-prompt {display:inline;}
+.uithemeswitch-themed .uithemeswitch-rollover .uithemeswitch-current {display:none;}
+/*accordion content...*/
+.uithemeswitch .uithemeswitch-content {padding:0;}
+/*NB ul.uithemeswitch-ul has inline styling of list-style-type:none; overflow:auto; overflow-x:hidden; */
+.uithemeswitch .uithemeswitch-ul {max-height:303px; margin:0; padding:0; width:100%; cursor:pointer;}
+.uithemeswitch .uithemeswitch-li {width:100%; padding:0.1em 0; margin:0; display:block; overflow:hidden;}
+/*the DIV children of LIs...*/
+.uithemeswitch .uithemeswitch-wrap {margin:0 0.1em;}
+/*...and the first 2 of those DIV children...*/
+.uithemeswitch .uithemeswitch-remember {padding:2px 0 2px 10px; font-weight:bold;}
+.uithemeswitch .uithemeswitch-reset {padding:2px 0 2px 10px; font-weight:bold;}
+/*the DIV grand-children of all bar the first 2 LIs...*/
+.uithemeswitch .uithemeswitch-theme {background-position:50% 95%; background-repeat:no-repeat; text-align:center; font-weight:normal; padding:0 0 82px 0; margin:0 1px 0 2px;}
+.uithemeswitch .uithemeswitch-theme-compact {background-position:6px 4px; background-repeat:no-repeat; font-weight:normal; padding:0.5em 0 0.5em 42px; margin:0 2px 0 2px;}
+/*the remember checkbox...*/
+.uithemeswitch input.uithemeswitch-remember-check {margin-left:2em; vertical-align:bottom; cursor:pointer;}

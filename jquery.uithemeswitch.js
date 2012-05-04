@@ -1,10 +1,14 @@
-/** @preserve jquery.uithemeswitch.js v1.0.1
- * requires jquery.ui.accordion.js, and optionally jquery.cookie.js
+/** @preserve jquery.uithemeswitch.js v1.0.2
+ * requires jquery v1.4.3+, jquery.ui.accordion.js, and optionally jquery.cookie.js
  */
 /*global jQuery, document, window */
 /*jslint white:true, regexp:true, plusplus:true, sloppy:true, forin:true*/
 
 /* Theme Switcher for jQuery UI
+ *
+ * Dual licensed under MIT and GPL-2.0
+ * - http://www.opensource.org/licenses/MIT
+ * - http://www.opensource.org/licenses/GPL-2.0
  * 
  * IMPORTANT : to use cookies, you need to include Klaus Hartl's cookie plugin for jQuery...
  *             https://github.com/carhartl/jquery-cookie
@@ -12,8 +16,8 @@
  * - switcher is made into an accordion and styled according to page's current theme (no accordion, no switcher!)
  * - places theme stylesheets immediately after each other, allowing site stylesheets to supercede and override all themes
  * - handles recognised theme links coded into the page (as well as a loadTheme option)
- * - uses data-uithemeswitch='{options object}' attribute if set on target element (overrides options passed into $.fn.uithemeswitch())
- * - handles multiple theme switcher instances on a page (can't see why multiples would be needed, but ...)
+ * - uses data-uts='{options object}' attribute, and data-uts-[option name]=value attributes if set on target element
+ * - handles multiple theme switcher instances on a page
  * - can have small or large (the default) theme thumbnails (compact option)
  * - can intercept and prevent a switch (onSelect option)
  * - can set all cookie options
@@ -21,13 +25,13 @@
  * - UI version defaults to jQuery.ui.version, but can be changed from options
  *     NOTE if your page loads a 'latest' version (eg. .../jqueryui/1/...) you should set this option to '1' also!
  * - can provide post-switch processing (onLoad option)
- * - class on BODY indicates current theme ('uithemeswitch-theme-' + THEME, where THEME is the CDN css folder
- *     unless cdn isn't being used in which case its the theme name lowercased with spaces replaced by hyphens
- *     eg 'uithemeswitch-theme-south-street', or 'uithemeswitch-theme-my-custom-theme')
+ * - class on BODY indicates current theme ('uithemeswitch-theme-' + THEME, where THEME is the theme name lowercased,
+ *     with anything non-alnumeric replaced by hyphens
+ *     eg 'uithemeswitch-theme-south-st', or 'uithemeswitch-theme-my-custom-theme')
  * - themes and thumbnails are sourced from CDN (but don't have to be)
  * - theme list can be modified, even adding your own
  * - optional 'Reset Theme' and 'Remember' options (with 'on___()' callback options)
- * - options can be preset ($.uithemeswitch.options.___ = ... )
+ * - options can be preset (eg. $.uithemeswitch.options.loadTheme = 'Black Tie';)
  * 
  * Usage :
  *   $(__).uithemeswitch(options, themeName);
@@ -41,43 +45,51 @@
  *   <!DOCTYPE html>
  *   <html>
  *   <head>
- *     <link type='text/css' rel='stylesheet' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/base/jquery-ui.css' />
- *     <script type='text/javascript' src='http://code.jquery.com/jquery-1.6.1.min.js'></script>
+ *     <link type='text/css' rel='stylesheet' href='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css' />
  *     
- *     <!-- you need ui-accordion and its dependencies... -->
- *     <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js'></script>
- *     <script type='text/javascript' src='jquery.uithemeswitch-1.0.js'></script>
+ *     <!-- you need the uithemeswitch stylesheet, AFTER the jquery UI stylesheet(s)... -->
+ *     <link type='text/css' rel='stylesheet' href='jquery.uithemeswitch.css' />
+ *     
+ *     <!-- you need jQuery, plus ui-accordion and its dependencies... -->
+ *     <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+ *     <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js'></script>
+ *     
+ *     <!-- you need the uithemeswitch code... -->
+ *     <script type='text/javascript' src='jquery.uithemeswitch.min.js'></script>
  *     <!-- if you want to use cookies to save the selected theme... -->
- *     <script type='text/javascript' src='jquery.cookie.js'></script>
+ *     <!-- <script type='text/javascript' src='jquery.cookie.js'></script> -->
  *     
  *     <script type='text/javascript'>
- *     jQuery(document).ready(function($){
- *       $('#myThemeSwitcher').uithemeswitch();
+ *     jQuery(function($){
+ *       $('#myThemeSwitchers').uithemeswitch();
  *       $('.myThemeSwitchers').uithemeswitch({sorted:false});
  *     });
  *     </script>
  *     
  *     <style type='text/css'>
- *       #myThemeSwitcher { position: absolute; top: 10px; left: 10px; width: 15em; }
- *       .myThemeSwitchers { float: left; width: 15em; margin: 50px 30px 0 0; }
- *       body.uithemeswitch-theme-darkhive { font-size: 0.8em; }
+ *       #myThemeSwitchers { position: absolute; top: 0; left: 0; z-index: 5; }
+ *       .myThemeSwitchers { position: relative; float: left; margin: 10px 30px 0 10px; }
+ *       body.uithemeswitch-theme-dot-luv .ui-widget { font-size: 1.1em; }
  *     </style>
  *   </head>
  *   <body>
  *   
- *     <div id='myThemeSwitcher'></div>
+ *     <div id='myThemeSwitchers'>
  *     
- *     <div class='myThemeSwitchers' data-uithemeswitch='{"maxHeight":300,"closeMouseout":"widget"}'></div>
- *     <div class='myThemeSwitchers' data-uithemeswitch='{"compact":true}'></div>
+ *       <div class='myThemeSwitchers'></div>
+ *       <div class='myThemeSwitchers' data-uts='{"showRemember":1,"closeMouseout":"widget","themeRollover":0,"sorted":"false"}'></div>
+ *       <div class='myThemeSwitchers' data-uts-compact='true' data-uts-show-reset='1' data-uts-show-remember='1'></div>
  *   
  *   <!-- to preload a theme in the absence of a cookie-saved theme...
- *     <div class='myThemeSwitchers' data-uithemeswitch='{"loadTheme":"Dark Hive"}'></div>
+ *       <div class='myThemeSwitchers' data-uts-load-theme='Dark Hive'></div>
  *   -->
+ *   
+ *     </div>
  *   
  *   </body>
  *   </html>
  *
- * Where and how you place it, and how you control its width, is completely up to you
+ * Where and how you place the Theme Switcher is completely up to you.
  *
  * NOTE re 'remember' option:
  * As of 26 May 2011, UK law (from EU directive) basically requires that nothing be stored on the user's computer
@@ -103,42 +115,36 @@
 
 if(!$.uithemeswitch){
     $.uithemeswitch = {
-		version: '1.0.1',
+		version: '1.0.2',
 		options: {
 			uiVersion: $.ui.version, //picked up from loaded ui, but overridable in case a 'latest' url is used for css (eg. like .../jqueryui/1/...)
 			compact: 0, // set true for small thumbnail; small = 30x27 px, large (default) = 90x80 px
-			loadTheme: null, // set to a theme name (eg. 'UI Lightness') to initially load that theme (in the absence of a cookie-saved theme)
-			text: {
-				prompt: 'Switch Theme',    // text displayed when current theme isn't (or can't be) displayed
-				current: 'Theme: ',        // text preceding the current theme's name
-				reset: 'Reset Theme',      // text on the reset option
-				remember: 'Remember'       // text on the remember option (in front of the remember checkbox)
-				},
-			width: null, // set your own, or get this to set it (using .css(), not .width()); I suggest '15em', or '150px'/'160px'
-			maxHeight: 200, // maximum height of the scrollable list of themes (the accordion panel)
-			closeSelect: 1, // collapses the list on selection of a new theme
-			closeMouseout: 'panel', // collapses the list on mouseout/leave of either the 'panel' (content only) or the 'widget' (header + content), or neither if false(ish)
-			cookie: { // set false/null to not use cookies, or set to a function to use your own [function is a setter only, and takes 2 params : theme name, and theme object]
-				name: 'jquery-ui-theme', // String
-				expires: null, // null (for end of session), a Date, or a number of days (negative deletes cookie)
-				path: '', // String folder (eg. '/' or '/sub-folder/') ... defaults to page's current path
-				domain: '', // String (eg. 'www.domain.com') ... defaults to page's current domain
-				secure: window.location.protocol === 'https:' // Boolean, true if secure
-				},
-			showRemember: 0, // show the remember button (at top of list of themes)
-			rememberedTheme: '', // theme name, only required if using an external function for 'cookie' and you need to indicate that a pre-linked theme originated from a cookie (ie. because you have showRemember set)
-			forceRemember: null, // set true or false to override the default setting of the remember checkbox
+			loadTheme: '', // set to a theme name (eg. 'UI Lightness') to initially load that theme (in the absence of a cookie-saved theme)
+			textPrompt: 'Switch Theme',    // text displayed when current theme isn't (or can't be) displayed
+			textCurrent: 'Theme: ',        // text preceding the current theme's name
+			textReset: 'Reset Theme',      // text on the reset option
+			textRemember: 'Remember',      // text on the remember option (in front of the remember checkbox)
+			closeSelect: 1, // (instant) collapse of the list on selection of a new theme or a reset
+			closeMouseout: 'all', // collapses the list on mouseout of either the entire switcher (='all', which is the default) or the content only(='list'); anything else prevents closure on mouseout (ie. re-click the header to close)
+			cookie: 1,                     // default is to use $.cookie (Klaus Hartl) if found; set false(ish) to not use cookies, or set to a function to use your own [function as a getter receives 1 arg : cookie object; function as a setter receives 3 args : cookie object, theme name, theme object]
+			cookieName: 'jquery-ui-theme', // String
+			cookieExpires: null,           // null (for end of session), a Date, or a number of days (negative deletes cookie)
+			cookiePath: '',                // String folder (eg. '/' or '/sub-folder/') ... $.cookie defaults it to page's current path
+			cookieDomain: '',              // String (eg. 'www.domain.com') ... $.cookie defaults it to page's current domain
+			cookieSecure: window.location.protocol === 'https:', // Boolean, true if secure
+			showRemember: 0, // show the remember item (at top of list of themes)
+			forceRemember: null, // set true (boolean) or false (boolean) to override the default setting of the remember checkbox
 			keep: 2, // maximum number of historic themes to keep loaded
 			sorted: 1, // sort the themes alphabetically
-			showReset: 0, // show the reset button (above list of themes)
-			themeRollover: 1, // only show the theme in the button text on mouse rollover (of the button)
+			showReset: 0, // show the reset item (above list of themes)
+			themeRollover: 1, // only show the theme in the header text on mouse rollover
 			onLoad: $.noop, // function, called after selected theme has been requested; parameters : new theme, previous theme; NOT called on initial load (via either cookie or loadTheme option)
 			onRemember: $.noop, // function, called when Remember is clicked; parameters : current state of Remember; return false to prevent the change of state
 			onReset: $.noop, // function, called when Reset Theme is clicked; parameters : current theme, reset theme, current state of Remember; return false to prevent any action being taken
 			onSelect: $.noop // function, called when a new theme is selected; parameters : selected theme, current theme, current state of Remember; return false to prevent selection
 		},
 		cssCDN: '//ajax.googleapis.com/ajax/libs/jqueryui/{uiVersion}/themes/{folder}/jquery-ui.css',
-		thumbCDN: 'http://static.jquery.com/ui/themeroller/images/themeGallery/theme_{thumbsize_30_90}_{thumb}.png',
+		thumbCDN: 'http://static.jquery.com/ui/themeroller/images/themeGallery/theme_{thumbsize}_{thumb}.png',
 		themes: {
 			// 'theme name' : { folder : [name of theme folder] , thumb : [theme-specific part of image file name] }
 			// where
@@ -178,117 +184,126 @@ if(!$.uithemeswitch){
 			'Trontastic'      : {},
 			'Swanky Purse'    : {}
 		},
-		currentTheme: '',
-		resetTheme: '',
+		instCt: 0, //the number of instances of switcher
+		current: '', //the 'current' theme name
+		resetTo: '', //the theme name to reset back to
+		bcls: '', // the body's original uithemeswitcher-theme-* class, eg. 'uithemeswitcher-theme-dot-luv'
 		destroy: function(){
 			// does NOT remove body class; does NOT remove inserted themes
 			var remove = $('.uithemeswitch-content, .uithemeswitch-header', this).hide();
-			$(this).accordion('destroy').removeClass('uithemeswitch');
+			$(this).accordion('destroy').removeClass('uithemeswitch').removeData('uithemeswitch');
 			remove.remove();
+			$.uithemeswitch.instCt--;
 		},
 		init: function(settings){
 			var self = $(this),
 					ns = $.uithemeswitch,
-					options = $.extend(true, {}, ns.options, settings),
-					smallThumb = !!options.compact,
+					options = $.extend({}, ns.options, settings),
+					compact = !!options.compact,
+					keepLoaded = parseInt(options.keep, 10),
 					cssCDN = ns.cssCDN.replace(/\{uiVersion\}/g, options.uiVersion),
-					thumbCDN = ns.thumbCDN.replace(/\{thumbsize_30_90\}/g, smallThumb ? '30' : '90'),
-					allThemes = $.extend(true, {}, ns.themes),
-					canRemember = $.isFunction(options.cookie) ? 2 : ( !!options.cookie && !!options.cookie.name && !!$.cookie ? 1 : 0 ),
-					fromMemory = canRemember === 1 ? $.cookie(options.cookie.name) : ( canRemember ? options.rememberedTheme || '' : '' ),
+					thumbCDN = ns.thumbCDN.replace(/\{thumbsize\}/g, compact ? '30' : '90'),
+					allThemes = {},
+					name = {},
+					cookieObject = (function(){
+						var rtn = {}, name, m;
+						for(name in options){
+							m = name.match(/^cookie(\w+)$/);
+							if(m){
+								rtn[ m[1].toLowerCase() ] = options[name];
+							}
+						}
+						return rtn;
+					}()),
+					canRemember = $.isFunction(options.cookie) 
+						? options.cookie
+						: ( !options.cookie || !cookieObject.name || !$.cookie
+							? 0
+							: function(cookieObject, themeName){
+									// this a wrapper for calling $.cookie ($.cookie has no use for the 3rd argument, themeObject)
+									return arguments.length > 1
+										//setter...
+										? $.cookie(cookieObject.name, themeName || null, cookieObject)
+										//getter...
+										: $.cookie(cookieObject.name, cookieObject);
+								}
+							),
+					fromMemory = !canRemember ? '' : canRemember(cookieObject) || '',
 					// a cookie-loaded theme takes precedence over the loadTheme option...
 					loadTheme = fromMemory || options.loadTheme || '',
 					preload = 0,
-					codedTheme = null,
-					switcherpane = '',
-					remember = canRemember && options.forceRemember !== false && 
+					codedTheme = '',
+					remembering = !!canRemember && options.forceRemember !== false && 
 						(options.forceRemember === true || !!fromMemory || !options.showRemember),
-					button = $('<div><a href="#">' + options.text.prompt + '</a></div>'),
+					header = $('<div><a href="#"></a></div>'),
+					temp = 0,
+					content,
 
+					// simply prefixes a string with 'uithemeswitch', optionally preceded by a '.'...
+					uts = function(x, dot){
+						return (dot ? '.' : '') + 'uithemeswitch' + (x || '');
+					},
 					// force an 'instant' close of the accordion's open content pane...
 					closeAccordion = function(){
-						if(options.closeSelect && switcherpane.is(':visible')){
-							var accordionAnim = self.accordion('option', 'animated');
-							self.accordion('option', 'animated', false);
-							$('ul', switcherpane).get(0).scrollTop = 0;
-							button.trigger('click').blur();
-							self.accordion('option', 'animated', accordionAnim);
+						$(uts('', 1)).each(function(){
+							var uiAccordion = $(this),
+									data = uiAccordion.data(uts()),
+									accordionAnim = uiAccordion.accordion('option', 'animated');
+							if(data.options.closeSelect){
+								$(uts('-ul', 1), uiAccordion.accordion('option', 'animated', false)).get(0).scrollTop = 0;
+								uiAccordion.accordion('activate', false).accordion('option', 'animated', accordionAnim);
+							}
+						});
+					},
+					cookieSet = function(themeName, themeObject){
+						if(!!canRemember){
+							canRemember(cookieObject, remembering && themeName ? themeName : null, themeObject);
 						}
 					},
-					cookieSet = function(themeName){
-						if(!remember){
-							themeName = false;
-						}
-						if(canRemember === 2){
-							// external...
-							options.cookie(themeName, allThemes[themeName] || {});
-						}else if(canRemember){
-							// cookie...
-							$.cookie(options.cookie.name, themeName || null, options.cookie);
-						}
-					},
-					// sets body class, button(s) and cookie...
-					displaySaveTheme = function(themeName){
+					// sets body class, header(s) and cookie...
+					displaySaveTheme = function(themeName, themeObject){
 						var b = $('body').get(0),
+								switchers = $(uts('', 1)),
 								cls;
 						if(b){
-							cls = $.grep((b.className || '').split(/\s+/), function(v){
-									return (v && !(/^uithemeswitch-theme-/).test(v));
+							cls = $.grep($.trim(b.className || '').split(/\s+/), function(v){
+									return !(/^uithemeswitch-theme-/).test(v);
 								});
-							if(!themeName){
-								if(ns.resetTheme){
-									cls.push(ns.resetTheme);
-								}
-							}else{
-								cls.push('uithemeswitch-theme-' + allThemes[themeName].bodycls);
+							if(themeName){
+								cls.push(uts('-theme-') + themeObject.cls);
+							}else if(ns.bcls){
+								cls.push(ns.bcls);
 							}
 							b.className = cls.join(' ');
 						}
 						// handles multiple instances of uithemeswitch...
-						$('.uithemeswitch-header a:not(.uithemeswitch-rollover)')
-							.text( themeName ? options.text.current + themeName : options.text.prompt );
-						cookieSet(themeName);
+						$(uts('-current-theme', 1)).text(themeName);
+						$('.ui-state-active', switchers.toggleClass(uts('-themed'), !!themeName)).removeClass('ui-state-active');
+						if(themeName){
+							$(uts('-select-' + themeObject.cls, 1) + '>div', switchers).addClass('ui-state-active');
+						}
+						cookieSet(themeName, themeObject);
 					},
 					// return true if event type is mouseleave or mouseout...
-					eventTypeLeaveOut = function(ev){
+					eventCursorOff = function(ev){
 						return (/^mouse(leave|out)$/).test(ev.type);
 					},
-					// return full href path to stylesheet...
-					getStylesheetHref = function(themeName){
-						return ( allThemes[themeName].cdn === false 
-							? allThemes[themeName].folder 
-							: cssCDN.replace(/\{.*?\}/g, allThemes[themeName].folder) );
-					},
-					hoverButton = function(ev){
-							if(ns.currentTheme){
-								$(this).text( eventTypeLeaveOut(ev) ? options.text.prompt : options.text.current + ns.currentTheme );
-							}
-					},
-					// hides pane on mouseout/leave...
-					hoverClose = function(ev){
-						if(eventTypeLeaveOut(ev) && switcherpane.is(':visible')){
-							button.trigger('click').blur();
-						}
-						return false;
-					},
-					// changes theme selector background colour on hover...
+					// changes theme selector background colour on hover (scope is LI)...
 					hoverTheme = function(ev){
-						$('>div', this).toggleClass('ui-state-hover', !eventTypeLeaveOut(ev));
+						$(this).children().toggleClass('ui-state-hover', !eventCursorOff(ev));
 					},
 					// implements the new theme stylesheet...
-					implementCSS = function(themeName){
-						var cssHref = getStylesheetHref(themeName),
-								links = $('head link'),
+					implementCSS = function(fromTheme, keepLoaded){
+						var links = $('head link'),
 								loaded = links.filter('.ui-theme'),
-								remove = loaded.filter('[href="' + cssHref + '"]'),
+								remove = loaded.filter(function(){ return this.href.indexOf(fromTheme.folder) >= 0; }),
 								cssLink, after;
 						if(remove.length){
 							// we already have the required theme linked in, so rather than link it in again,
 							// just remove the subsequently loaded themes that are no longer required...
-							loaded.slice(loaded.index(remove) + 1).remove();
-							loaded = [];
+							loaded = loaded.slice(loaded.index(remove) + 1).remove();
 						}else{
-							cssLink = $('<link href="' + cssHref + '" type="text/css" rel="stylesheet" class="ui-theme ui-switcher" />');
+							cssLink = $('<link href="' + fromTheme.css + '" type="text/css" rel="stylesheet" class="ui-theme ui-switcher" />');
 							after = loaded.length ? loaded.last() : links.not(loaded).filter('[href$="jquery-ui.css"]').last();
 							if(after.length){
 								after.after(cssLink);
@@ -297,74 +312,54 @@ if(!$.uithemeswitch){
 								$('head').append(cssLink);
 							}
 						}
-						displaySaveTheme(themeName);
-						if(loaded.length >= options.keep){
-							// let's try not to have too many unnecessary stylesheets linked in at once...
-							loaded.first().remove();
-						}
+						// let's try not to have too many unnecessary stylesheets linked in at once...
+						// (but only remove those that the switcher has added!)
+						loaded.filter('.ui-switcher').slice(0, -keepLoaded).remove();
 						links = loaded = remove = after = null;
 					},
-					// if there's already a linked-in theme, find it in our list of themes...
-					linkedInTheme = function(){
-						var rtn = null;
-						$('head link').filter('[href$="jquery-ui.css"]').each(function(){
-							var name;
-							for(name in allThemes){
-								if(getStylesheetHref(name) === this.href){
-									rtn = name;
-								}
-							}
-						});
-						return rtn;
-					},
-					// remember clicked...
-					rememberTheme = function(el){
-						// if the checkbox itself was clicked we must return true; otherwise, return false...
-						var rtn = $(el).is('input');
-						// handles multiple instances of uithemeswitch...
-						$('.uithemeswitch-remember input').not(el).each(function(){
-								this.checked = !this.checked;
-							});
-						remember = !remember;
-						cookieSet(ns.currentTheme);
-						return rtn;
-					},
-					// resets
-					resetTheme = function(){
-						$('head link.ui-switcher').remove();
-						$('body').each(function(){
-							var resetTo = ns.resetTheme || '',
-									cls = $.grep((this.className || '').split(/\s+/), function(v){
-										return (!!v && ( v === resetTo || !(/^uithemeswitch-theme-/).test(v) ));
-									});
-							if(resetTo){
-								cls.push(resetTo);
-							}
-							this.className = cls.join(' ');
-						});
-						displaySaveTheme( linkedInTheme() );
-						closeAccordion();
-						ns.currentTheme = '';
-					},
-					// handles a click on a theme...
-					selectTheme = function(ev){
+					// handles a click on a switcher (scope is UL.uithemeswitch-ul)...
+					switcherClick = function(ev, init){
 						var target = $(ev.target),
-								item = target.closest('li'),
-								themeName = item.data('uitheme') || '',
+								selectedData = target.closest('li').data(uts()),
+								themeName = selectedData.theme,
+								switcherData = target.closest(uts('', 1)).data(uts()),
+								options = switcherData.options,
+								fromTheme = switcherData.themes,
 								rtn = false;
-						// note that re-selecting the current theme is ignored; also, returning false from
-						// the onSelect() option will prevent the selected theme being implemented;
-						// note that onSelect is not called for a reset
-						if(themeName && allThemes[themeName] && themeName !== ns.currentTheme &&
-								options.onSelect(themeName, ns.currentTheme, remember) !== false){
-							implementCSS(themeName);
+						// note that re-selecting the current theme is ignored unless initialising; also, returning false from
+						// the onSelect() option will prevent the selected theme being implemented; and neither onSelect() or
+						// onload() are run if initialising
+						if(themeName){
+							fromTheme = fromTheme[themeName];
+							if(fromTheme
+									&& (init || (themeName !== ns.current && options.onSelect(themeName, ns.current, remembering) !== false))){
+								implementCSS(fromTheme, options.keep);
+								displaySaveTheme(themeName, fromTheme);
+								closeAccordion();
+								if(!init){
+									options.onLoad(themeName, ns.current);
+								}
+								ns.current = themeName;
+							}
+						// reset; note that onSelect() & onLoad() are NOT called...
+						}else if(selectedData.reset && options.onReset(ns.current, ns.resetTo, remembering) !== false){
+							$('head link.ui-switcher').remove();
+							displaySaveTheme( ns.resetTo, fromTheme[ns.resetTo] || {} );
 							closeAccordion();
-							options.onLoad(themeName, ns.currentTheme);
-							ns.currentTheme = themeName;
-						}else if(item.hasClass('uithemeswitch-reset') && options.onReset(ns.currentTheme, ns.resetTheme, remember) !== false){
-							resetTheme();
-						}else if(item.hasClass('uithemeswitch-remember')){
-							rtn = options.onRemember(remember) !== false ? rememberTheme(ev.target) : false;
+							ns.current = ns.resetTo;
+						// remember...
+						}else if(selectedData.remember){
+							rtn = options.onRemember(remembering);
+							if(rtn !== false){
+								// if the checkbox itself was clicked we must return true; otherwise, return false...
+								rtn = target.is('input');
+								// handles multiple instances of uithemeswitch...
+								$(uts('-remember-check', 1)).not(target).each(function(){
+										this.checked = !this.checked;
+									});
+								remembering = !remembering;
+								cookieSet(ns.current, fromTheme[ns.current] || {});
+							}
 						}
 						return rtn;
 					},
@@ -373,162 +368,149 @@ if(!$.uithemeswitch){
 						var a = [],
 								b = 0,
 								c = {},
-								name;
-						for(name in allThemes){ a[b++] = name; }
+								d;
+						for(d in allThemes){ a[b++] = d; }
 						a.sort();
-						for(b = 0 ; b < a.length; b++){ c[a[b]] = allThemes[a[b]]; }
+						for(d = 0 ; d < b; d++){ c[ a[d] ] = allThemes[ a[d] ]; }
 						a = null;
 						return c;
 					};
 
-			if(options.sorted){
-				allThemes = sortThemes();
-			}
-
-			if(options.keep < 1){
-				options.keep = 1;
-			}
-
-			// panel markup...
-			switcherpane += '<li class="uithemeswitch-remember"><div>' + options.text.remember + '<input type="checkbox" value="1" /></div></li>';
-			switcherpane += '<li class="uithemeswitch-reset"><div>' + options.text.reset + '</div></li>';
-			$.each(allThemes, function(k, v){
-				var backgroundImage;
-				if(v){
-					if(v.cdn === false){
-						// custom user-defined themes...
-						v.bodycls = k.toLowerCase().replace(/\s+/g, '-');
-						backgroundImage = v.thumb;
-					}else{
-						v.folder = v.folder || k.toLowerCase().replace(/\s+/g, '-');
-						v.thumb = v.thumb || v.folder.replace(/-/g, '_');
-						v.bodycls = v.folder;
-						backgroundImage = thumbCDN.replace(/\{.*?\}/g, v.thumb);
-					}
-					if(v.folder && v.thumb){
-						switcherpane += [
-							'<li data-uitheme="', // [theme name],
-							'"><div style="background-image:url(' + backgroundImage + ');">', // [theme name],
-							'</div></li>'
-							].join(k);
-						if(k === loadTheme){
-							preload = 1;
-						}
+			$.each(ns.themes, function(k, v){
+				var cls = k.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+						folder, thumb, cdn;
+				if(v && !name[cls]){
+					cdn = v.cdn !== false;
+					folder = cdn ? v.folder || k.toLowerCase().replace(/\s+/g, '-') : v.folder;
+					thumb = cdn ? v.thumb || folder.replace(/-/g, '_') : v.thumb;
+					if(folder && thumb){
+						++temp;
+						name[cls] = k;
+						allThemes[k] = {
+							folder: folder,
+							css: cdn ? cssCDN.replace(/\{folder\}/g, folder) : folder,
+							thumb: 'url(' + (cdn ? thumbCDN.replace(/\{thumb\}/g, thumb) : thumb) + ')',
+							cls: cls,
+							cdn: cdn
+							};
+						preload = preload || k === loadTheme;
 					}
 				}
 			});
-			switcherpane = $('<div><ul>' + switcherpane + '</ul></div>');
 
-			// determine initial theme...
-			if(ns.currentTheme){
-				// this would (should) only be set if this is not the first instance on this page
-				codedTheme = ns.currentTheme;
-			}else{
-				codedTheme = linkedInTheme();
-				// check current body class (for reset purposes)...
-				$('body').each(function(){
-						var cls = this.className || '';
-						if(cls){
-							cls = (' ' + cls + ' ').match(/\s(uithemeswitch-theme-[^ ]+)\s/);
+			if(temp){
+				// good to go...
+
+				if(options.sorted){
+					allThemes = sortThemes();
+				}
+				options.keep = isNaN(keepLoaded) || keepLoaded < 1 ? 1 : keepLoaded;
+
+				// determine initial theme...
+				if(ns.instCt++){
+					// this would only be set if this is not the first instance on this page
+					codedTheme = ns.current;
+				}else{
+					// first instance...
+					// if there's already a linked-in theme, that we can recognise, find it in our list of themes...
+					$('head link').filter(function(){
+						var name, match;
+						for(name in allThemes){
+							match = this.href.indexOf(allThemes[name].folder) >= 0;
+							if(match){
+								codedTheme = name;
+								break;
+							}
 						}
-						if(cls){
-							ns.resetTheme = cls[1];
-						}
-				});
-			}
+						return match;
+					}).addClass('ui-theme');
+					ns.resetTo = codedTheme;
+					// check current body class (for reset purposes)...
+					temp = $('body').get(0);
+					temp = temp ? (' ' + (temp.className || '') + ' ').match(/\s(uithemeswitch-theme-[^\s]+)\s/) : temp;
+					if(temp){
+						ns.bcls = temp[1];
+					}
+				}
 
-			// pane CSS and events...
-			switcherpane.css({
-					padding: '0'
-				});
-			if(options.closeMouseout === 'panel'){
-				// this is only on the panel, and does not include the button (accordion header)
-				switcherpane.hover(hoverClose);
-			}else if(options.closeMouseout === 'widget'){
-				// this is on the entire switcher (accordion widget)
-				self.hover(hoverClose);
-			}
-				
-			$('ul', switcherpane).css({
-					listStyleType: 'none',
-					margin: 0,
-					padding: 0,
-					overflow: 'auto',
-					overflowX: 'hidden',
-					maxHeight: options.maxHeight,
-					width: '100%',
-					cursor: 'pointer'
-				})
-				.addClass('ui-corner-bottom')
-				.click(selectTheme);
-			$('li', switcherpane).css({
-					width: '100%',
-					padding: '0.1em 0',
-					margin: 0,
-					display: 'block',
-					overflow: 'hidden'
-				})
-				.hover(hoverTheme)
-				.find('div').css({
-					backgroundPosition: smallThumb ? '6px 0' : '50% 95%',
-					backgroundRepeat: 'no-repeat',
-					textAlign: smallThumb ? 'left' : 'center',
-					fontWeight: 'normal',
-					padding: smallThumb ? '0.5em 0 0.5em 42px' : '0 0 82px 0',
-					margin: smallThumb ? '0 2px 0 2px' : '0 1px 0 2px'
-				})
-				.addClass('ui-widget-content ui-corner-all');
-			$('li.uithemeswitch-reset div', switcherpane).css({
-					backgroundImage: 'none',
-					padding: '2px 0 2px 10px',
-					textAlign: 'left',
-					fontWeight: 'bold'
-				})
-				.parent()[options.showReset ? 'show' : 'hide']();
-			$('li.uithemeswitch-remember div', switcherpane).css({
-					backgroundImage: 'none',
-					padding: '2px 0 2px 10px',
-					textAlign: 'left',
-					fontWeight: 'bold'
-				})
-				.find('input').each(function(){
-						this.checked = remember;
-					}).css({
-						marginLeft: '2em',
-						verticalAlign:'bottom',
-						cursor:'pointer'
-					}).end()
-				// there's no point showing 'Remember' unless there's also a mechanism available for remembering...
-				.parent()[canRemember && options.showRemember ? 'show' : 'hide']();
+				// content panel list...
+				content = $('<ul/>')
+					.css({listStyleType: 'none', overflow: 'auto', overflowX: 'hidden'})
+					.addClass(uts('-ul ui-corner-bottom'))
+					.click(switcherClick)
+					.append(
+						// remember...
+						//   note : there's no point showing it unless there's the means available for remembering
+						$('<li></li>').data(uts(), {remember:1})[options.showRemember && !!canRemember ? 'show' : 'hide']().append(
+							$('<div/>').addClass(uts('-remember')).text(options.textRemember)
+								.append(
+									$('<input type="checkbox" value="1" /></div>').addClass(uts('-remember-check'))
+										.each(function(){ this.checked = remembering; })
+								)
+						),
+						// reset...
+						$('<li></li>').data(uts(), {reset:1})[options.showReset ? 'show' : 'hide']().append(
+							$('<div/>').text(options.textReset).addClass(uts('-reset'))
+						)
+					);
+				// themes...
+				for(name in allThemes){
+					content.append(
+						$('<li></li>').data(uts(), {theme:name}).addClass(uts('-select-' + allThemes[name].cls)).append(
+							$('<div/>').append(
+								$('<div/>').css({backgroundImage:allThemes[name].thumb})
+									.addClass(uts('-theme') + (compact ? '-compact' : ''))
+									.text(name)
+								)
+							)
+						);
+				}
+				$('li', content).addClass(uts('-li ui-corner-bottom')).hover(hoverTheme)
+					.children().addClass(uts('-wrap ui-widget-content ui-corner-all'));
 
-			// target...
-			if(options.width){
-				self.css({width:options.width});
-			}
+				content = $('<div/>').append(content).hide();
 
-			if(options.themeRollover){
-				$('a', button).addClass('uithemeswitch-rollover').hover(hoverButton);
-			}
+				// 'all' is the entire switcher, whereas 'list' does not include accordion header...
+				temp = {all:self, list:content}[options.closeMouseout];
+				if(temp){
+					temp.mouseleave(function(){
+						// closes accordion on mouseleave...
+						$(this).closest(uts('', 1)).accordion('activate', false);
+						return false;
+					});
+				}
 
-			self.addClass('uithemeswitch')
-				// append button & pane...
-				.append(button.addClass('uithemeswitch-header'))
-				.append(switcherpane.addClass('uithemeswitch-content').hide())
-				// create accordion...
-				.accordion({active:false, collapsible:true});
+				// header...			
+				temp = $('a', header).addClass(uts('-button')).append( 
+						$('<span/>').addClass(uts('-prompt')).text(options.textPrompt),
+						$('<span/>').addClass(uts('-current')).text(options.textCurrent)
+							.append( $('<span/>').addClass(uts('-current-theme')) )
+					);
+				if(options.themeRollover){
+					temp.addClass(uts('-rollover'))
+						.hover(function(ev){
+							// remove anchor's rollover class on enter, add class on leave...
+							$(this).toggleClass(uts('-rollover'), eventCursorOff(ev));
+						});
+				}
 
-			if(codedTheme){
-				displaySaveTheme(codedTheme);
-			}
-			// if an initial theme load is required, do it...
-			if(preload){
-				implementCSS(loadTheme);
-				ns.currentTheme = loadTheme;
-			}else{
-				ns.currentTheme = codedTheme || '';
-			}
+				self.addClass(uts())
+					.data(uts(), {
+						options: options,
+						themes: allThemes
+					})
+					// append header & content...
+					.append( header.addClass(uts('-header')), content.addClass(uts('-content')) )
+					// create accordion...
+					.accordion({active:false, collapsible:true});
 
-		}
+				// if an initial theme load is required, do it...
+				if(preload || codedTheme){
+					$(uts('-select-' + allThemes[preload ? loadTheme : codedTheme].cls, 1), self).trigger('click', [true]);
+				}
+
+			}
+		} // end init()
 	};
 
 	$.fn.uithemeswitch = function(options, themeName){
@@ -536,15 +518,30 @@ if(!$.uithemeswitch){
 			this.each(function(){
 				var ns = $.uithemeswitch,
 						isSwitcher = $(this).hasClass('uithemeswitch'),
-						data = $(this).data('uithemeswitch');
+						data;
 				if(options === 'destroy' && isSwitcher){
 					ns[options].call(this);
 				}else if(options === 'reset' && isSwitcher){
 					$('.uithemeswitch-reset', this).trigger('click');
 				}else if(options === 'select' && !!themeName){
-					$('.uithemeswitch-content li:[data-uitheme="' + themeName + '"]').trigger('click');
+					$('.uithemeswitch-content li:[data-uitheme="' + themeName + '"]', this).trigger('click');
 				}else if(!isSwitcher){
-					ns.init.call(this, $.extend({}, options || {}, $.isPlainObject(data) ? data : {}));
+					//look for data-uts={options object} and/or data-uts-[option name]=value
+					//priority : data-uts-[option name] values > data-uts object > passed-in options object
+					//note : option name is the non-camelBacked version (ie. for maxHeight option, use data-uts-max-height)
+					data = $(this).data() || {};
+					data.uts = data.uts || {};
+					$.each(data, function(k, v){
+						if(/^uts([A-Z][a-z]+)+$/.test(k)){ //jQuery 1.6+
+							data.uts[ k.substr(3,1).toLowerCase() + k.substr(4) ] = v;
+						}else if(/^uts(-[a-z]+)+$/.test(k)){ //jQuery 1.4.3 -> 1.5*
+							k = $.map(k.split('-'), function(x, i){
+								return i ? (i > 1 ? x.substr(0,1).toUpperCase() + x.substr(1) : x) : null;
+							}).join('');
+							data.uts[k] = v;
+						}
+					});
+					ns.init.call(this, $.extend({}, options || {}, data.uts));
 				}
 			});
 		}

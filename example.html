@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>jquery.uithemeswitch</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link type='text/css' rel='stylesheet' href='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css' />
+<!--  <link type='text/css' rel='stylesheet' href='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/dot-luv/jquery-ui.css' /> -->
+	<link type='text/css' rel='stylesheet' href='jquery.uithemeswitch.css' />
+	<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'></script>
+  
+	<!-- you need ui-accordion and its dependencies... -->
+	<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js'></script>
+	<script type='text/javascript' src='jquery.uithemeswitch.min.js'></script>
+	<!-- if you want to use cookies to save the selected theme you can include Klaus Hartl's plugin... -->
+<!--	<script type='text/javascript' src='jquery.cookie.js'></script> -->
+  
+	<script type='text/javascript'>
+// for the purposes of this example, I've hard-coded the $.cookie plugin code...
+/**
+ * jQuery Cookie plugin - https://github.com/carhartl/jquery-cookie
+ *
+ * Copyright (c) 2010 Klaus Hartl, @carhartl
+ * Dual licensed under the MIT and GPL licenses:
+ * http://www.opensource.org/licenses/mit-license.php
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ */
+(function(g){g.cookie=function(h,b,a){var d,c,f,e;if(1<arguments.length&&(!/Object/.test(Object.prototype.toString.call(b))||null===b||void 0===b)){a=g.extend({},a);if(null===b||void 0===b)a.expires=-1;"number"===typeof a.expires&&(d=a.expires,c=a.expires=new Date,c.setDate(c.getDate()+d));b=""+b;
+return document.cookie=[encodeURIComponent(h),"=",a.raw?b:encodeURIComponent(b),a.expires?"; expires="+a.expires.toUTCString():"",a.path?"; path="+a.path:"",a.domain?"; domain="+a.domain:"",a.secure?"; secure":""].join("")}a=b||{};
+d=a.raw?function(a){return a}:decodeURIComponent;c=document.cookie.split("; ");for(e=0;c[e];e++)if((f=c[e].split("="))&&d(f[0])===h)return d(f[1]||"");return null}})(jQuery);
+
+	jQuery(function($){
+		//initialise the Theme Switchers...
+		$('.myThemeSwitchers').uithemeswitch();
+		//run jQuery UI on the examples...
+		$('.examples').find('div[id], button[id]').each(function(){
+			if(this.id.indexOf('-') < 0){
+				$(this)[this.id]();
+			}
+		});
+	});
+	</script>
+  
+	<style type='text/css'>
+		body, html { margin: 0; padding: 0; border: 0 none; font-size: 14px; font-family:Arial, Helvetica, sans-serif; }
+		div, p, form, ul, li, button, input, h3, h4 { position:relative; }
+
+    #myThemeSwitchers { position: absolute; top: 0; left: 0; z-index: 5; }
+    .myThemeSwitchers { position: relative; float: left; margin: 10px 30px 0 10px; }
+    body.uithemeswitch-theme-dot-luv .ui-widget { font-size: 1.1em; } /*reduce from 1.3em*/
+    
+    #examples { position:relative; width:860px; margin:70px auto 0; font-size:12px; }
+    #groupA { float:left; width:400px; }
+    #groupB { float:right; width:400px; }
+    #groupC { width:100%; padding:1em 0 2em; clear:both; }
+    #highlight-example, #error-example { width:400px; }
+    #error-example { float:right; }
+  </style>
+</head>
+<body class='uithemeswitch-theme-black-tie'>
+
+	<div id='myThemeSwitchers'>
+		<div class='myThemeSwitchers'></div>
+		<div class='myThemeSwitchers' data-uts='{"showRemember":1,"closeMouseout":"list","themeRollover":0,"sorted":"false"}'></div>
+		<div class='myThemeSwitchers' data-uts-compact='true' data-uts-show-reset='1' data-uts-show-remember='1'></div>
+	</div>
+
+<!-- to preload a theme in the absence of a cookie-saved theme...
+  <div class='myThemeSwitchers' data-uts-load-theme='Dark Hive'></div>
+-->
+
+	<div id='examples'>
+
+		<div id="groupA" class="examples">
+
+			<!-- Accordion -->
+			<div id="accordion" class="ui-accordion ui-widget ui-helper-reset">
+				<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top"><a href="#">Left Switcher</a></h3>
+				<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active">
+					This is the default uithemeswitcher with no options set. So themes are unsorted, showing large icons, etc, etc.
+				</div>
+				<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top"><a href="#">Middle Switcher</a></h3>
+				<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active">
+					This uithemeswitcher shows the Remember item, only collapses on mouseout of the theme list, always shows the current theme name,
+					and its themes are unsorted.
+					<ul>
+						<li>closeMouseout: 'list';</li>
+						<li>showRemember : 1;</li>
+						<li>sorted : false;</li>
+						<li>themeRollover : 0;</li>
+					</ul>
+				</div>
+				<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top"><a href="#">Right Switcher</a></h3>
+				<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active">
+					The 3rd uithemeswitcher shows both the Remember and the Reset items, and is set to list the smaller theme icons to save some space.
+					<ul>
+						<li>compact : true;</li>
+						<li>showRemember : 1;</li>
+						<li>showReset : 1;</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Button -->
+			<button id="button" class="ui-button ui-widget ui-state-default ui-corner-all" style="margin-top: 1em;">A button element</button>
+			<form style="margin-top: 1em;">
+				<div id="buttonset">
+					<input type="radio" id="radio1" name="radio" /><label for="radio1">Choice 1</label>
+					<input type="radio" id="radio2" name="radio" checked="checked" /><label for="radio2">Choice 2</label>
+					<input type="radio" id="radio3" name="radio" /><label for="radio3">Choice 3</label>
+				</div>
+			</form>
+			
+		</div><!-- /#groupA -->
+		
+		<div id="groupB" class="examples">
+		
+			<!-- Tabs -->
+			<div id="tabs" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+				<ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+					<li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1">Left</a></li>
+					<li class="ui-state-default ui-corner-top"><a href="#tabs-2">Middle</a></li>
+					<li class="ui-state-default ui-corner-top"><a href="#tabs-3">Right</a></li>
+				</ul>
+				<div id="tabs-1" class="ui-tabs-panel ui-widget-content">
+					This is the default uithemeswitcher with no options set. So themes are unsorted, showing large icons, etc, etc.
+				</div>
+				<div id="tabs-2" class="ui-tabs-panel ui-widget-content">
+					This uithemeswitcher shows the Remember item, only collapses on mouseout of the theme list, always shows the current theme name,
+					and its themes are unsorted.
+					<ul>
+						<li>closeMouseout: 'list';</li>
+						<li>showRemember : 1;</li>
+						<li>sorted : false;</li>
+						<li>themeRollover : 0;</li>
+					</ul>
+				</div>
+				<div id="tabs-3" class="ui-tabs-panel ui-widget-content">
+					The 3rd uithemeswitcher shows both the Remember and the Reset items, and is set to list the smaller theme icons to save some space.
+					<ul>
+						<li>compact : true;</li>
+						<li>showRemember : 1;</li>
+						<li>showReset : 1;</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Datepicker -->
+			<div id="datepicker" style="margin-top: 1em;"></div>
+			
+		</div><!-- /#groupB -->
+
+		<div id="groupC" class="examples">
+
+			<!-- Highlight / Error -->
+			<div id="error-example">
+				<div class="ui-widget">
+					<div class="ui-state-error ui-corner-all" style="padding: 0 .7em;"> 
+						<p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span> 
+							<strong>Alert:</strong> Sample ui-state-error style.</p>
+					</div>
+				</div>
+			</div>
+
+			<div id="highlight-example">
+				<div class="ui-widget">
+					<div class="ui-state-highlight ui-corner-all" style="padding: 0 .7em;"> 
+						<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+							<strong>Hey!</strong> Sample ui-state-highlight style.</p>
+					</div>
+				</div>
+			</div>
+
+	
+		</div><!-- /#groupC -->
+
+	</div>
+
+</body>
+</html>
